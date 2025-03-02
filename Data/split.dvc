@@ -1,0 +1,6 @@
+outs:
+- md5: 5c35669b7aae6d2cf76b37f1e5b2afc2.dir
+  size: 461072822
+  nfiles: 86437
+  hash: md5
+  path: split
