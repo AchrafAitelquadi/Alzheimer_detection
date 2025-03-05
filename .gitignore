@@ -1,5 +1,6 @@
-/Data/*
 /models/*
 /logs/*
 /venv/*
 /dvc/*
+/mlruns/*
+/scripts/__pycache__
