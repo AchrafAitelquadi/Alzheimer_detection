@@ -1,0 +1,12 @@
+{
+    "RAW_DIR" : "D:/proj/MLOPS/Alzheimer_detection/Data/raw",
+    "PROCESSED_DIR" : "D:/proj/MLOPS/Alzheimer_detection/Data/processed",
+    "train_dir" : "D:/proj/MLOPS/Alzheimer_detection/Data/split/train",
+    "test_dir" : "D:/proj/MLOPS/Alzheimer_detection/Data/split/test",
+    "OUTPUT_DIR" : "D:/proj/MLOPS/Alzheimer_detection/Data/split",
+    "IMG_SIZE" : [100, 100],
+    "BATCH_SIZE" : 256,
+    "TRAIN_RATIO" : 0.8,
+    "TEST_RATIO" : 0.2,
+    "EXPERIMENT_NAME" : "Alzheimer Detection"
+}

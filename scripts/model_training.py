@@ -3,9 +3,13 @@ import mlflow.keras
 from data_query import load_data
 from mlflow_functions import train_log_model
 from models_create import create_model
+import json
 
-EXPERIMENT_NAME = "Alzheimer Detection"
+with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+    config = json.load(f)
 
+
+EXPERIMENT_NAME = config["EXPERIMENT_NAME"]
 # Load the data
 train_generator, test_generator = load_data()
 
@@ -20,7 +24,7 @@ def train_all_models():
 
     for i in range(1, 4):
         model = create_model(i)
-        accuracy = train_log_model(f"Model {i}", model, train_data, test_data, )
+        accuracy = train_log_model(f"Model {i}", model, train_data, test_data)
         model_results[i] = accuracy
     
     best_model_num = max(model_results, key=model_results.get)

@@ -1,6 +1,7 @@
 import os
 import cv2
 import logging
+import json
 
 # Set up logging
 logging.basicConfig(
@@ -8,7 +9,10 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-RAW_DIR = r"D:\proj\MLOPS\Alzheimer_detection\Data\raw"
+with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+    config = json.load(f)
+    
+RAW_DIR = config["RAW_DIR"]
 
 def validate_images():
     """
@@ -54,9 +58,9 @@ def validate_images():
             except Exception as e:
                 logging.error(f"Failed to remove image {img}: {e}")
     else:
+        
         logging.info("All images are valid!")
 
     logging.info(f"Total images checked: {total_images}")
 
-if __name__ == "__main__":
-    validate_images()
+

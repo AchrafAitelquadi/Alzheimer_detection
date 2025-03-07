@@ -1,14 +1,18 @@
-import os
-import mlflow
-import mlflow.keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import json
+
+
+with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+    config = json.load(f)
 
 # Paths to the split dataset
-train_dir = r"D:\proj\MLOPS\Alzheimer_detection\Data\split\train"
-test_dir = r"D:\proj\MLOPS\Alzheimer_detection\Data\split\test"
+train_dir = config["train_dir"]
+test_dir = config["test_dir"]
+IMG_SIZE = tuple(config["IMG_SIZE"])
+BATCH_SIZE = config["BATCH_SIZE"]
 
 # Data Generator for training and validation
-def load_data(IMG_SIZE = (100, 100), BATCH_SIZE = 256):
+def load_data(IMG_SIZE = IMG_SIZE, BATCH_SIZE = BATCH_SIZE):
     # Use ImageDataGenerator to read images from the directories
     train_datagen = ImageDataGenerator(rescale=1./255)
     test_datagen = ImageDataGenerator(rescale=1./255)
@@ -29,4 +33,3 @@ def load_data(IMG_SIZE = (100, 100), BATCH_SIZE = 256):
     )
 
     return train_generator, test_generator
-train_generator, test_generator = load_data()

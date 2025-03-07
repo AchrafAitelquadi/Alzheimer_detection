@@ -7,7 +7,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 def train_log_model(model_name, model, train_data, test_data, batch_size = 256):
     """Train a model, log metrics, and save it in MLflow."""
 
-    if mlflow.active_run():
+    if mlflow.active_run(): 
         mlflow.end_run()
 
     with mlflow.start_run(run_name= model_name):

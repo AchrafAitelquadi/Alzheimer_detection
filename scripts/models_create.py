@@ -1,12 +1,17 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+import json
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+
+IMG_SIZE = config["IMG_SIZE"]
 def create_model(model_number):
     """Returns a model based on the model number."""
     
     if model_number == 1:
         model = Sequential([
-            Conv2D(32, (3, 3), activation='relu', input_shape=(100, 100, 3)),
+            Conv2D(32, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
             MaxPooling2D((2, 2)),
             Flatten(),
             Dense(128, activation='relu'),
@@ -15,7 +20,7 @@ def create_model(model_number):
         ])
     elif model_number == 2:
         model = Sequential([
-            Conv2D(64, (3, 3), activation='relu', input_shape=(100, 100, 3)),
+            Conv2D(64, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
             MaxPooling2D((2, 2)),
             Conv2D(128, (3, 3), activation='relu'),
             MaxPooling2D((2, 2)),
@@ -26,7 +31,7 @@ def create_model(model_number):
         ])
     elif model_number == 3:
         model = Sequential([
-            Conv2D(32, (5, 5), activation='relu', input_shape=(100, 100, 3)),
+            Conv2D(32, (5, 5), activation='relu', input_shape=IMG_SIZE + (3,)),
             MaxPooling2D((2, 2)),
             Conv2D(64, (5, 5), activation='relu'),
             MaxPooling2D((2, 2)),

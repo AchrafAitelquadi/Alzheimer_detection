@@ -1,6 +1,7 @@
 import os
 import cv2
 import logging
+import json
 
 # Set up logging
 logging.basicConfig(
@@ -8,9 +9,12 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-RAW_DIR = r"D:\proj\MLOPS\Alzheimer_detection\Data\raw"
-PROCESSED_DIR = r"D:\proj\MLOPS\Alzheimer_detection\Data\processed"
-IMG_SIZE = (100, 100)
+with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+    config = json.load(f)
+    
+RAW_DIR = config["RAW_DIR"]
+PROCESSED_DIR = config["PROCESSED_DIR"]
+IMG_SIZE = tuple(config["IMG_SIZE"])
 
 def preprocess_and_save():
     logging.info("Starting preprocessing...")
@@ -49,7 +53,3 @@ def preprocess_and_save():
         logging.info(f"Processed {images_processed} images for class: {class_name}")
     
     logging.info(f"Total images processed: {total_images_processed}")
-    logging.info("Preprocessing completed!")
-
-if __name__ == "__main__":
-    preprocess_and_save()
