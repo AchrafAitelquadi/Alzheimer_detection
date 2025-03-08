@@ -4,9 +4,13 @@
     "train_dir" : "D:/proj/MLOPS/Alzheimer_detection/Data/split/train",
     "test_dir" : "D:/proj/MLOPS/Alzheimer_detection/Data/split/test",
     "OUTPUT_DIR" : "D:/proj/MLOPS/Alzheimer_detection/Data/split",
-    "IMG_SIZE" : [100, 100],
-    "BATCH_SIZE" : 256,
+    "IMG_SIZE" : [224, 224],
+    "batch_size" : 256,
     "TRAIN_RATIO" : 0.8,
     "TEST_RATIO" : 0.2,
-    "EXPERIMENT_NAME" : "Alzheimer Detection"
+    "EXPERIMENT_NAME" : "Alzheimer Detection",
+    "dropout_rate" : 0.5,
+    "learning_rate" : 0.0001,
+    "epochs" : 1,
+    "number_of_models" : 1
 }

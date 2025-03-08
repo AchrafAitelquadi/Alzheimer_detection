@@ -1,7 +1,6 @@
 import os
 import cv2
 import logging
-import json
 
 # Set up logging
 logging.basicConfig(
@@ -9,14 +8,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
-    config = json.load(f)
-    
-RAW_DIR = config["RAW_DIR"]
-PROCESSED_DIR = config["PROCESSED_DIR"]
-IMG_SIZE = tuple(config["IMG_SIZE"])
-
-def preprocess_and_save():
+def preprocess_and_save(RAW_DIR, PROCESSED_DIR, IMG_SIZE):
     logging.info("Starting preprocessing...")
 
     os.makedirs(PROCESSED_DIR, exist_ok=True)  # Creation of the new directory to save the processed images

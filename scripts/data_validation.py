@@ -1,7 +1,6 @@
 import os
 import cv2
 import logging
-import json
 
 # Set up logging
 logging.basicConfig(
@@ -9,12 +8,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
-    config = json.load(f)
-    
-RAW_DIR = config["RAW_DIR"]
 
-def validate_images():
+def validate_images(RAW_DIR):
     """
     Validates the images in the processed directory, checks for corrupted images,
     and removes them if found.

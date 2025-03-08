@@ -1,12 +1,7 @@
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-import json
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout   
 
-with open("config.json", "r") as f:
-    config = json.load(f)
-
-IMG_SIZE = config["IMG_SIZE"]
-def create_model(model_number):
+def create_model(model_number, IMG_SIZE, dropout_rate, num_classes):
     """Returns a model based on the model number."""
     
     if model_number == 1:
@@ -14,32 +9,11 @@ def create_model(model_number):
             Conv2D(32, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
             MaxPooling2D((2, 2)),
             Flatten(),
-            Dense(128, activation='relu'),
-            Dropout(0.5),
-            Dense(4, activation='softmax')
+            Dense(64, activation='relu'),
+            Dropout(dropout_rate),
+            Dense(num_classes, activation='softmax')
         ])
-    elif model_number == 2:
-        model = Sequential([
-            Conv2D(64, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
-            MaxPooling2D((2, 2)),
-            Conv2D(128, (3, 3), activation='relu'),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(256, activation='relu'),
-            Dropout(0.5),
-            Dense(4, activation='softmax')
-        ])
-    elif model_number == 3:
-        model = Sequential([
-            Conv2D(32, (5, 5), activation='relu', input_shape=IMG_SIZE + (3,)),
-            MaxPooling2D((2, 2)),
-            Conv2D(64, (5, 5), activation='relu'),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(128, activation='relu'),
-            Dropout(0.5),
-            Dense(4, activation='softmax')
-        ])
+        
     else:
         raise ValueError("Invalid model number. Choose 1, 2, or 3.")
     
@@ -102,3 +76,14 @@ def create_model(model_number):
 
 
     return model """
+
+""" if model_number == 1:
+        num_classes = 4
+        base_model = ResNet50(
+            weights=None,            # Sıfırdan başlatma
+            include_top=False,
+            input_shape=(IMG_SIZE[0], IMG_SIZE[1], 3)
+        )
+        x = GlobalAveragePooling2D()(base_model.output)
+        outputs = Dense(num_classes, activation='softmax')(x)
+        model = Model(inputs=base_model.input, outputs=outputs) """

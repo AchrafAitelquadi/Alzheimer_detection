@@ -1,18 +1,7 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import json
-
-
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
-    config = json.load(f)
-
-# Paths to the split dataset
-train_dir = config["train_dir"]
-test_dir = config["test_dir"]
-IMG_SIZE = tuple(config["IMG_SIZE"])
-BATCH_SIZE = config["BATCH_SIZE"]
 
 # Data Generator for training and validation
-def load_data(IMG_SIZE = IMG_SIZE, BATCH_SIZE = BATCH_SIZE):
+def load_data(train_dir, test_dir, IMG_SIZE, BATCH_SIZE):
     # Use ImageDataGenerator to read images from the directories
     train_datagen = ImageDataGenerator(rescale=1./255)
     test_datagen = ImageDataGenerator(rescale=1./255)

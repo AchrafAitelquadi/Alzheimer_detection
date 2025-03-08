@@ -2,23 +2,23 @@ import mlflow
 import mlflow.keras
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
 
-
-def train_log_model(model_name, model, train_data, test_data, batch_size = 256):
+def train_log_model(model_name, model, train_data, test_data, learning_rate, batch_size, epochs):
     """Train a model, log metrics, and save it in MLflow."""
 
     if mlflow.active_run(): 
         mlflow.end_run()
 
     with mlflow.start_run(run_name= model_name):
-
+        optimizer = Adam(learning_rate=learning_rate)
         model.compile(
-            optimizer = "adam",
+            optimizer = optimizer,
             loss = "sparse_categorical_crossentropy",
             metrics = ["accuracy"]
         )
 
-        model.fit(train_data, epochs = 1, 
+        model.fit(train_data, epochs = epochs, 
                 validation_data = test_data, 
                 batch_size = batch_size,
                 callbacks = [EarlyStopping(monitor = "val_loss", patience = 3, restore_best_weights = True)]

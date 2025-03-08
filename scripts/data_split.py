@@ -2,28 +2,17 @@ import os
 import shutil
 import random
 import logging
-import json
+
 # Set up logging
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
 
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
-    config = json.load(f)
-
 # Set seed for reproducibility
 random.seed(42)
 
-# Define directories
-DATA_DIR = config["PROCESSED_DIR"]
-OUTPUT_DIR = config["OUTPUT_DIR"]
-
-# Train-test split ratios
-TRAIN_RATIO = config["TRAIN_RATIO"]
-TEST_RATIO = config["TEST_RATIO"]
-
-def data_split():
+def data_split(PROCESSED_DIR, OUTPUT_DIR, TRAIN_RATIO, TEST_RATIO):
     """ Splits data into training and testing sets and saves them in separate folders. """
     
     logging.info("Starting data splitting...")
@@ -33,11 +22,11 @@ def data_split():
         os.makedirs(os.path.join(OUTPUT_DIR, split), exist_ok=True)
 
     # Get list of class directories
-    classes = [d for d in os.listdir(DATA_DIR) if os.path.isdir(os.path.join(DATA_DIR, d))]
+    classes = [d for d in os.listdir(PROCESSED_DIR) if os.path.isdir(os.path.join(PROCESSED_DIR, d))]
     logging.info(f"Found {len(classes)} classes: {classes}")
 
     for class_name in classes:
-        class_path = os.path.join(DATA_DIR, class_name)
+        class_path = os.path.join(PROCESSED_DIR, class_name)
         images = os.listdir(class_path)
 
         if not images:
