@@ -6,10 +6,10 @@ def create_model(model_number, IMG_SIZE, dropout_rate, num_classes):
     
     if model_number == 1:
         model = Sequential([
-            Conv2D(32, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
+            Conv2D(2, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
             MaxPooling2D((2, 2)),
             Flatten(),
-            Dense(64, activation='relu'),
+            Dense(2, activation='relu'),
             Dropout(dropout_rate),
             Dense(num_classes, activation='softmax')
         ])
