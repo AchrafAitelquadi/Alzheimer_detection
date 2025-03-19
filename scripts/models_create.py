@@ -1,21 +1,18 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout   
 
-def create_model(model_number, IMG_SIZE, dropout_rate, num_classes):
+def create_model(IMG_SIZE, dropout_rate, num_classes, model_number = None):
     """Returns a model based on the model number."""
     
-    if model_number == 1:
-        model = Sequential([
-            Conv2D(2, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
-            MaxPooling2D((2, 2)),
-            Flatten(),
-            Dense(2, activation='relu'),
-            Dropout(dropout_rate),
-            Dense(num_classes, activation='softmax')
-        ])
+    model = Sequential([
+        Conv2D(1, (3, 3), activation='relu', input_shape=IMG_SIZE + (3,)),
+        MaxPooling2D((4, 4)),
+        Flatten(),
+        Dense(1, activation='relu'),
+        Dropout(dropout_rate),
+        Dense(num_classes, activation='softmax')
+    ])
         
-    else:
-        raise ValueError("Invalid model number. Choose 1, 2, or 3.")
     
     return model
 
@@ -80,7 +77,7 @@ def create_model(model_number, IMG_SIZE, dropout_rate, num_classes):
 """ if model_number == 1:
         num_classes = 4
         base_model = ResNet50(
-            weights=None,            # Sıfırdan başlatma
+            weights=None,            
             include_top=False,
             input_shape=(IMG_SIZE[0], IMG_SIZE[1], 3)
         )

@@ -4,3 +4,4 @@
 /dvc/*
 /mlruns/*
 /scripts/__pycache__
+*.db

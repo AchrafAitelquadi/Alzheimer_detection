@@ -1,5 +1,6 @@
 import logging
 from prefect import flow, task, get_run_logger
+import train_optimize
 import data_preparation
 import data_validation
 import data_split
@@ -17,6 +18,12 @@ IMG_SIZE = tuple(config["IMG_SIZE"])
 TRAIN_RATIO = config["TRAIN_RATIO"]
 TEST_RATIO = config["TEST_RATIO"]
 OUTPUT_DIR = config["OUTPUT_DIR"]
+
+args = {"retries" : 3, 
+        "retry_delay_seconds" : 10, 
+        "timeout_seconds" : 300}
+
+
 
 @task(retries=3, retry_delay_seconds=10, timeout_seconds=300)
 def validate():
@@ -54,14 +61,26 @@ def split():
         logging.error(f"Error in data split step: {e}")
         raise
 
+@task(retries = 3, retry_delay_seconds = 10, timeout_seconds = 300)
+def train():
+    try:
+        logging.info("Step 3: Splitting data...")
+        train_optimize.train_opti()
+        logging.info("Step 3 completed successfully!")
+    except Exception as e:
+        logging.error(f"Error in data split step: {e}")
+        raise
+
+
 @flow(name = "Alzheimer_data_pipeline")
-def data_pipeline():
+def data_train_pipeline():
     logger = get_run_logger()
     logger.info("Starting automated data processing pipeline...")
     validate()
     preprocess()
     split()
+    train()
     logger.info("Data processing pipeline completed successfully!")
 
 if __name__ == "__main__":
-    data_pipeline()
+    data_train_pipeline()
