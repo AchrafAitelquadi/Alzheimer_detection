@@ -25,4 +25,4 @@ jobs:
 
       - name: Run Prefect Pipeline
         run: |
-          python ./scripts/prefect_pipeline_data.py
+          python ./scripts/prefect_pipeline.py
