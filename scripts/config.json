@@ -5,7 +5,7 @@
     "test_dir" : "D:/proj/MLOPS/Alzheimer_detection/Data/split/test",
     "OUTPUT_DIR" : "D:/proj/MLOPS/Alzheimer_detection/Data/split",
     "IMG_SIZE" : [224, 224],
-    "batch_size" : 512,
+    "batch_size" : 32,
     "TRAIN_RATIO" : 0.8,
     "TEST_RATIO" : 0.2,
     "EXPERIMENT_NAME" : "Alzheimer Detection",
