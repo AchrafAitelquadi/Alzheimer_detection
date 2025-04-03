@@ -6,10 +6,15 @@ import data_validation
 import data_split
 import json
 from pathlib import Path
+import os
 
-BASE_PATH = Path(__file__).resolve().parent.parent
-CONFIH_PATH = BASE_PATH / "scripts" / "config.json"
-with open(CONFIH_PATH, "r") as f:
+if "GITHUB_WORKSPACE" in os.environ:
+    BASE_PATH = Path(os.environ["GITHUB_WORKSPACE"]) 
+else:
+    BASE_PATH = Path(__file__).resolve().parent.parent 
+
+CONFIG_PATH = BASE_PATH / "scripts" / "config.json"
+with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
 # Configure logging

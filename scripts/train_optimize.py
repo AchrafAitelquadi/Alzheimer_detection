@@ -5,10 +5,15 @@ from models_create import create_model
 from data_query import load_data
 from mlflow_functions import train_log_model, save_best_model
 from pathlib import Path
+import os
 
-BASE_PATH = Path(__file__).resolve().parent.parent
-CONFIH_PATH = BASE_PATH / "scripts" / "config.json"
-with open(CONFIH_PATH, "r") as f:
+if "GITHUB_WORKSPACE" in os.environ:
+    BASE_PATH = Path(os.environ["GITHUB_WORKSPACE"]) 
+else:
+    BASE_PATH = Path(__file__).resolve().parent.parent 
+
+CONFIG_PATH = BASE_PATH / "scripts" / "config.json"
+with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
 train_dir = BASE_PATH / config["train_dir"]
