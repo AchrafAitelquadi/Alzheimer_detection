@@ -5,24 +5,20 @@ import data_preparation
 import data_validation
 import data_split
 import json
-from pathlib import Path
 import os
 
-if "GITHUB_WORKSPACE" in os.environ:
-    BASE_PATH = Path(os.environ["GITHUB_WORKSPACE"]) 
-else:
-    BASE_PATH = Path(__file__).resolve().parent.parent 
-
-CONFIG_PATH = BASE_PATH / "scripts" / "config.json"
+BASE_PATH = os.getcwd()
+CONFIG_PATH = os.path.join(BASE_PATH, "scripts", "config.json")
 with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-RAW_DIR = BASE_PATH / config["RAW_DIR"]
-PROCESSED_DIR = BASE_PATH / config["PROCESSED_DIR"]
-OUTPUT_DIR = BASE_PATH / config["OUTPUT_DIR"]
+RAW_DIR = os.path.join(BASE_PATH, config["RAW_DIR"])
+PROCESSED_DIR = os.path.join(BASE_PATH, config["PROCESSED_DIR"])
+OUTPUT_DIR = os.path.join(BASE_PATH, config["OUTPUT_DIR"])
+
 IMG_SIZE = tuple(config["IMG_SIZE"])
 TRAIN_RATIO = config["TRAIN_RATIO"]
 TEST_RATIO = config["TEST_RATIO"]
