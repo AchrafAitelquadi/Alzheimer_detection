@@ -25,3 +25,8 @@ jobs:
 
       - name: Run Prefect Pipeline
         run: python ./scripts/prefect_pipeline.py
+      - name: Save Model
+        uses: actions/upload-artifact@v3
+        with:
+          name: trained_model
+          path: models/
