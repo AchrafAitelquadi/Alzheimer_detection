@@ -16,8 +16,13 @@ CONFIG_PATH = BASE_PATH / "scripts" / "config.json"
 with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
+
 train_dir = BASE_PATH / config["train_dir"]
 test_dir = BASE_PATH / config["test_dir"]
+save_model_path = BASE_PATH / "models"
+
+if not os.path.exists(save_best_model):
+        os.makedirs(save_best_model)
 
 EXPERIMENT_NAME = config["EXPERIMENT_NAME"]
 IMG_SIZE = tuple(config["IMG_SIZE"])
@@ -68,6 +73,6 @@ def train_opti():
     final_accuracy = train_log_model("Final_Optimized_Model", final_model, train_data, test_data, best_params["learning_rate"], best_params["batch_size"], epochs)
 
     # Sauvegarde du modèle final
-    save_best_model(EXPERIMENT_NAME, {1: final_accuracy})
+    save_best_model(EXPERIMENT_NAME, {1: final_accuracy}, )
 
     print("Entraînement terminé avec les meilleurs hyperparamètres !")

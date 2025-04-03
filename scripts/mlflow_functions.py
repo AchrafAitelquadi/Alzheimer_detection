@@ -83,7 +83,7 @@ def train_log_model(model_name, model, train_data, test_data, learning_rate, bat
     return accuracy
 
 
-def save_best_model(EXPERIMENT_NAME, model_results, save_dir=r"D:\proj\MLOPS\Alzheimer_detection\models"):
+def save_best_model(EXPERIMENT_NAME, model_results, save_dir):
     # Determine the best model based on accuracy
     best_model_num = max(model_results, key=model_results.get)
     print(f"Best Model: {best_model_num} with Accuracy={model_results[best_model_num]}")
