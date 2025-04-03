@@ -5,19 +5,22 @@ import data_preparation
 import data_validation
 import data_split
 import json
+import os
 
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+
+BASE_PATH = os.getcwd()
+with open(os.path.join(BASE_PATH, "scripts", "config.json"), "r") as f:
     config = json.load(f)
 
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-RAW_DIR = config["RAW_DIR"]
-PROCESSED_DIR = config["PROCESSED_DIR"]
+RAW_DIR = os.path.join(BASE_PATH, config["RAW_DIR"])
+PROCESSED_DIR = os.path.join(BASE_PATH, config["PROCESSED_DIR"])
+OUTPUT_DIR = os.path.join(BASE_PATH, config["OUTPUT_DIR"])
 IMG_SIZE = tuple(config["IMG_SIZE"])
 TRAIN_RATIO = config["TRAIN_RATIO"]
 TEST_RATIO = config["TEST_RATIO"]
-OUTPUT_DIR = config["OUTPUT_DIR"]
 
 args = {"retries" : 3, 
         "retry_delay_seconds" : 10, 

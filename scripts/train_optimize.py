@@ -4,13 +4,17 @@ import json
 from models_create import create_model
 from data_query import load_data
 from mlflow_functions import train_log_model, save_best_model
-
+import os
 # Charger la configuration
-with open(r"D:\proj\MLOPS\Alzheimer_detection\scripts\config.json", "r") as f:
+
+BASE_PATH = os.getcwd()
+
+with open(os.path.join(BASE_PATH, "scripts", "config.json"), "r") as f:
     config = json.load(f)
 
-train_dir = config["train_dir"]
-test_dir = config["test_dir"]
+train_dir = os.path.join(BASE_PATH, config["train_dir"])
+test_dir = os.path.join(BASE_PATH, config["test_dir"])
+
 EXPERIMENT_NAME = config["EXPERIMENT_NAME"]
 IMG_SIZE = tuple(config["IMG_SIZE"])
 epochs = config["epochs"]
