@@ -19,13 +19,13 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                 name: models
-                path: models
+                path: ./models
 
             - name: Download MLFlow artifacts
               uses: actions/download-artifact@v3
               with:
                 name: mlruns
-                path: mlruns
+                path: ./mlruns
 
             - name: Setup Docker
               uses: docker/setup-buildx-action@v2
