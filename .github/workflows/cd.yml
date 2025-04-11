@@ -24,21 +24,23 @@ jobs:
             - name: Download model artifacts from CI
               uses: dawidd6/action-download-artifact@v2
               with:
-                workflow: Continuous Integration
+                workflow: ci.yml
+                workflow_conclusion: success
+                run_id: ${{ github.event.workflow_run.id }}
                 name: models
                 path: ./models
                 github_token: ${{ secrets.GITHUB_TOKEN }}
-                workflow_conclusion: success
                 check_artifacts: true
             
             - name: Download MLFlow artifacts from CI
               uses: dawidd6/action-download-artifact@v2
               with:
-                workflow: Continuous Integration
+                workflow: ci.yml
+                workflow_conclusion: success
+                run_id: ${{ github.event.workflow_run.id }}
                 name: mlruns
                 path: ./mlruns
                 github_token: ${{ secrets.GITHUB_TOKEN }}
-                workflow_conclusion: success
                 check_artifacts: true
 
             # - name: Download model artifacts
