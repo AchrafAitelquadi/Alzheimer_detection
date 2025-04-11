@@ -59,4 +59,4 @@ jobs:
               uses: docker/setup-buildx-action@v2
               
             - name: Build and run with Docker compose
-              run : docker-compose up --build -d
+              run : docker compose up --build -d
