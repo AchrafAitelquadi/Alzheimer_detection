@@ -31,8 +31,16 @@ jobs:
       
       - name: Run Tests
         run: pytest tests/
-      - name: Save Model
+
+        #Saving models in case to use them later
+      - name: Save Model 
         uses: actions/upload-artifact@v4
         with:
-          name: trained_model
+          name: models
           path: models/
+      
+      - name: Upload mlruns (MLFlow Tracking)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlruns
+          path: mlruns/
