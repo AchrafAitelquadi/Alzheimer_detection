@@ -43,20 +43,16 @@ jobs:
                 github_token: ${{ secrets.GITHUB_TOKEN }}
                 check_artifacts: true
 
-            # - name: Download model artifacts
-            #   uses: actions/download-artifact@v4
-            #   with:
-            #     name: models
-            #     path: ./models
-
-            # - name: Download MLFlow artifacts
-            #   uses: actions/download-artifact@v4
-            #   with:
-            #     name: mlruns
-            #     path: ./mlruns
-
             - name: Setup Docker
               uses: docker/setup-buildx-action@v2
               
             - name: Build and run with Docker compose
               run : docker compose up --build -d
+
+            #Show logs for FastAPI
+            - name: Show FastAPI logs
+              run : docker compose logs -f fastapi
+
+            #Show logs for MLFlow
+            - name: Show MLFlow logs
+              run : docker compose logs -f mlflow
