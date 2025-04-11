@@ -20,17 +20,34 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v3
 
-            - name: Download model artifacts
-              uses: actions/download-artifact@v4
+
+            - name: Download model artifacts from CI
+              uses: dawidd6/action-download-artifact@v2
               with:
+                workflow: Continuous Integration
                 name: models
                 path: ./models
-
-            - name: Download MLFlow artifacts
-              uses: actions/download-artifact@v4
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+            
+            - name: Download MLFlow artifacts from CI
+              uses: dawidd6/action-download-artifact@v2
               with:
+                workflow: Continuous Integration
                 name: mlruns
                 path: ./mlruns
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                
+            # - name: Download model artifacts
+            #   uses: actions/download-artifact@v4
+            #   with:
+            #     name: models
+            #     path: ./models
+
+            # - name: Download MLFlow artifacts
+            #   uses: actions/download-artifact@v4
+            #   with:
+            #     name: mlruns
+            #     path: ./mlruns
 
             - name: Setup Docker
               uses: docker/setup-buildx-action@v2
