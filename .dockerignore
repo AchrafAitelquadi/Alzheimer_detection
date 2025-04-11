@@ -1,0 +1,11 @@
+.github/
+venv/
+mlruns/
+models/
+*.zip
+*.rar
+optuna.db
+.env
+.git
+.gitignore
+__pycache__/

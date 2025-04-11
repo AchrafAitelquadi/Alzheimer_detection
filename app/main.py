@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from app.predict import make_predictions_alzheimer
-from app.schemas import AlzheimerPredictionResponse
+from predict import make_predictions_alzheimer
+from schemas import AlzheimerPredictionResponse
 
 app = FastAPI(title="Alzheimer Detection Image API")
 

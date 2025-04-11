@@ -1,11 +1,11 @@
 from fastapi import UploadFile
 from PIL import Image
 import numpy as np
-from app.model import get_latest_model_alzheimer
+from model import get_latest_model_alzheimer
 import json
 import os
 
-CONFIG_PATH = os.path.join(os.getcwd(), "scripts", "config.json")
+CONFIG_PATH = "config.json"
 with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
