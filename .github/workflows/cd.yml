@@ -48,11 +48,3 @@ jobs:
               
             - name: Build and run with Docker compose
               run : docker compose up --build -d
-
-            #Show logs for FastAPI
-            - name: Show FastAPI logs
-              run : docker compose logs -f fastapi
-
-            #Show logs for MLFlow
-            - name: Show MLFlow logs
-              run : docker compose logs -f mlflow
