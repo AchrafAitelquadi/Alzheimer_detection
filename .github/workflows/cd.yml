@@ -51,10 +51,13 @@ jobs:
             
             - name: Wait for services to be ready
               run: sleep 30
-
+            
+            - name: List Docker images
+              run: docker images
+              
             - name: Export Docker images
               run: |
-                docker save fastapi_app mlflow_ui reverse_proxy -o app_bundle.tar
+                docker save myapp_fastapi ghcr.io/mlflow/mlflow nginx:latest -o app_bundle.tar
             
             - name: Upload bundled Docker images
               uses: actions/upload-artifact@v4
