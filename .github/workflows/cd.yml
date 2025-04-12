@@ -48,3 +48,41 @@ jobs:
               
             - name: Build and run with Docker compose
               run : docker compose up --build -d
+            
+            - name: Export Docker images
+              run: |
+                docker save fastapi_app mlflow_ui reverse_proxy -o app_bundle.tar
+            
+            - name: Upload bundled Docker images
+              uses: actions/upload-artifact@v4
+              with:
+                name: docker-app-bundle
+                path: app_bundle.tar
+              
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            # - name: Log in to Docker Hub
+            #   run : echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            
+            # - name: Build all images
+            #   run: docker compose build
+            
+            # - name: Push images to Docker Hub
+            #   run: |
+            #     docker push achrafaitelquadi/fastapi:latest
+            #     docker push achrafaitelquadi/nginx-reverse-proxy:latest
