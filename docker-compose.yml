@@ -3,9 +3,8 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
+    image: achrafaitelquadi/fastapi:latest
     container_name: fastapi_app
-    # ports:
-    #   - "8000:8000"
     expose:
       - "8000"
     volumes:
@@ -15,10 +14,11 @@ services:
       # - prefect
   
   mlflow:
-    image: ghcr.io/mlflow/mlflow
+    build:
+      context: .
+      dockerfile: mlflow/Dockerfile
+    image: achrafaitelquadi/mlflow:latest
     container_name: mlflow_ui
-    # ports:
-    #   - "5000:5000"
     expose:
       - "5000"
     volumes:
@@ -28,7 +28,10 @@ services:
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri /mlflow/mlruns --default-artifact-root /mlflow/mlruns
 
   nginx:
-    image: nginx:latest
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    image: achrafaitelquadi/nginx-reverse-proxy:latest
     container_name: reverse_proxy
     ports:
       - "80:80"
