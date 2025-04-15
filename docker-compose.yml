@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
-    image: achrafaitelquadi/fastapi:latest
+    image: achrafaitelquadi/mlops-alzheimer-detection-app:fastapi-latest
     container_name: fastapi_app
     expose:
       - "8000"
@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: mlflow/Dockerfile
-    image: achrafaitelquadi/mlflow:latest
+    image: achrafaitelquadi/mlops-alzheimer-detection-app:mlflow-latest
     container_name: mlflow_ui
     expose:
       - "5000"
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile
-    image: achrafaitelquadi/nginx-reverse-proxy:latest
+    image: achrafaitelquadi/mlops-alzheimer-detection-app:nginx-latest
     container_name: reverse_proxy
     ports:
       - "80:80"

@@ -58,18 +58,8 @@ jobs:
             - name: Push images to Docker Hub
               run: |
                   docker compose build
-
-                  docker push achrafaitelquadi/fastapi:latest
-                  docker push achrafaitelquadi/mlflow:latest
-                  docker push achrafaitelquadi/nginx-reverse-proxy:latest
             
-                  docker tag fastapi ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:fastapi-latest
-                  docker tag mlflow ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:mlflow-latest
-                  docker tag nginx-reverse-proxy ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:nginx-latest
-                  
-                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:fastapi-latest
-                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:mlflow-latest
-                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:nginx-latest
+                  docker compose push
 
             - name: Deploy with Docker compose
               run: docker compose up -d
