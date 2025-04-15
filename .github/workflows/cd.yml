@@ -46,20 +46,33 @@ jobs:
             - name: Setup Docker
               uses: docker/setup-buildx-action@v2
               
-            - name: Build and run with Docker compose
-              run : docker compose up --build -d
+            # - name: Build and run with Docker compose
+            #   run : docker compose build
             
-            - name: Wait for services to be ready
-              run: sleep 30
+            # - name: Wait for services to be ready
+            #   run: sleep 30
             
-            # - name: Log in Docker Hub
-            #   run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            - name: Log in Docker Hub
+              run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             
-            # - name: Push images to Docker Hub
-            #   run: |
-            #       docker push achrafaitelquadi/fastapi:latest
-            #       docker push achrafaitelquadi/mlflow:latest
-            #       docker push achrafaitelquadi/nginx-reverse-proxy:latest
+            - name: Push images to Docker Hub
+              run: |
+                  docker compose build
+
+                  docker push achrafaitelquadi/fastapi:latest
+                  docker push achrafaitelquadi/mlflow:latest
+                  docker push achrafaitelquadi/nginx-reverse-proxy:latest
+            
+                  docker tag fastapi ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:fastapi-latest
+                  docker tag mlflow ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:mlflow-latest
+                  docker tag nginx-reverse-proxy ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:nginx-latest
+                  
+                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:fastapi-latest
+                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:mlflow-latest
+                  docker push ${{ secrets.DOCKER_USERNAME }}/mlops-alzheimer-detection-app:nginx-latest
+
+            - name: Deploy with Docker compose
+              run: docker compose up -d
             
             
 
