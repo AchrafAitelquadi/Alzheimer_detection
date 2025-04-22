@@ -1,6 +1,5 @@
 .github/
 venv/
-mlruns/
 models/
 *.zip
 *.rar
