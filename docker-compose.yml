@@ -11,7 +11,6 @@ services:
       - ./models:/app/models
     depends_on:
       - mlflow
-      #- prefect
   
   mlflow:
     build:
@@ -21,8 +20,6 @@ services:
     container_name: mlflow_ui
     expose:
       - "5000"
-    # volumes:
-    #   - ./mlruns:/mlruns
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
 
