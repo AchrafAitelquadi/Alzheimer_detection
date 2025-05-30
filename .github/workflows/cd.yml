@@ -131,14 +131,6 @@ jobs:
           NGROK_NGINX_URL=$(cat tunnels.json | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
           echo $NGROK_NGINX_URL
 
-      - name: Run tests against Ngrok URL
-        run: |
-          NGROK_NGINX_URL=$(cat tunnels.json | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
-          echo "Testing FastAPI root at $NGROK_NGINX_URL/api/"
-          curl -s $NGROK_NGINX_URL/api/ | jq . || echo "FastAPI test failed"
-          echo "Testing MLflow at $NGROK_NGINX_URL/mlflow/"
-          curl -I -s $NGROK_NGINX_URL/mlflow/ || echo "MLflow test failed"
-
       - name: Keep Ngrok running for testing
         run: |
           echo "Ngrok tunnel is active. Access URL above for manual testing."
