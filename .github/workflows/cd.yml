@@ -90,6 +90,21 @@ jobs:
           echo "Contents of /etc/nginx in Nginx container:"
           docker exec reverse_proxy ls -lah /etc/nginx
 
+      - name: Test FastAPI internally
+        run: |
+          echo "Testing FastAPI internally..."
+          docker exec fastapi_app curl -s http://localhost:8000/
+
+      - name: Test MLflow internally
+        run: |
+          echo "Testing MLflow internally..."
+          docker exec mlflow_ui curl -s http://localhost:5000/
+
+      - name: Test FastAPI connectivity from Nginx
+        run: |
+          echo "Testing FastAPI from Nginx container..."
+          docker exec reverse_proxy curl -s http://fastapi:8000/
+
       - name: Download and set up Ngrok
         run: |
           wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip
@@ -115,7 +130,7 @@ jobs:
           echo "Testing FastAPI root at $NGROK_NGINX_URL/api/"
           curl -s $NGROK_NGINX_URL/api/ | jq .
           echo "Testing MLflow at $NGROK_NGINX_URL/mlflow/"
-          curl -s $NGROK_NGINX_URL/mlflow/ | jq .
+          curl -I -s $NGROK_NGINX_URL/mlflow/  # Vérifie le code de statut HTTP
 
       - name: Keep Ngrok running for testing
         run: |
