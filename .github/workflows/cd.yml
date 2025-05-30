@@ -6,123 +6,118 @@ on:
     types:
       - completed
 
-#Permission to download from another workflow
 permissions:
   actions: read
   contents: read
 
 jobs:
-    deploy:
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-            - name: Download model artifacts from CI
-              uses: dawidd6/action-download-artifact@v2
-              with:
-                workflow: ci.yml
-                workflow_conclusion: success
-                run_id: ${{ github.event.workflow_run.id }}
-                name: models
-                path: ./models
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                check_artifacts: true
-            
-            - name: Download MLFlow artifacts from CI
-              uses: dawidd6/action-download-artifact@v2
-              with:
-                workflow: ci.yml
-                workflow_conclusion: success
-                run_id: ${{ github.event.workflow_run.id }}
-                name: mlruns
-                path: ./mlruns
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                check_artifacts: true
+      - name: Download model artifacts from CI
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ci.yml
+          workflow_conclusion: success
+          run_id: ${{ github.event.workflow_run.id }}
+          name: models
+          path: ./models
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_artifacts: true
 
+      - name: Download MLflow artifacts from CI
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ci.yml
+          workflow_conclusion: success
+          run_id: ${{ github.event.workflow_run.id }}
+          name: mlruns
+          path: ./mlruns
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_artifacts: true
 
-            - name: Setup Docker
-              uses: docker/setup-buildx-action@v2
-            
-            - name: Build images
-              run: |
-                docker compose up -d --build
-                sleep 10
-            
-            - name: Show FastAPI container logs
-              run: |
-                echo "Checking FastAPI container logs..."
-                docker ps
-                docker logs $(docker ps -q --filter name=fastapi_app)
-            
-            - name: Show MLflow container logs
-              run: |
-                echo "Checking MLflow container logs..."
-                docker logs $(docker ps -q --filter name=mlflow_ui)
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
 
-            - name: Show Nginx container logs
-              run: |
-                echo "Checking Nginx container logs..."
-                docker logs $(docker ps -q --filter name=reverse_proxy)
-            
-            - name: Inspect FastAPI container filesystem
-              run: |
-                echo "Current directory in FastAPI container:"
-                docker exec fastapi_app pwd
-                echo "Contents of /app in FastAPI container:"
-                docker exec fastapi_app ls -lah /app
+      - name: Build and run containers
+        run: |
+          docker-compose up -d --build
+          sleep 10
 
-            - name: Inspect MLflow container filesystem
-              run: |
-                echo "Current directory in MLflow container:"
-                docker exec mlflow_ui pwd
-                echo "Contents of /app in MLflow container:"
-                docker exec mlflow_ui ls -lah /app
-            
-            - name: Inspect Nginx container filesystem
-              run: |
-                echo "Current directory in Nginx container:"
-                docker exec reverse_proxy pwd
-                echo "Contents of /etc/nginx in Nginx container:"
-                docker exec reverse_proxy ls -lah /etc/nginx
+      - name: Show FastAPI container logs
+        run: |
+          echo "Checking FastAPI container logs..."
+          docker ps
+          docker logs $(docker ps -q --filter name=fastapi_app)
 
-            - name: Download and set up Ngrok
-              run: |
-                wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip
-                unzip ngrok-stable-linux-amd64.zip
-                sudo mv ngrok /usr/local/bin
-                ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+      - name: Show MLflow container logs
+        run: |
+          echo "Checking MLflow container logs..."
+          docker logs $(docker ps -q --filter name=mlflow_ui)
 
-            - name: Start Ngrok tunnels
-              run: |
-                nohup ngrok http 80 > ngrok_nginx.log &
-                nohup ngrok http 8000 > ngrok_fastapi.log &
-                nohup ngrok http 5000 > ngrok_mlflow.log &
-                sleep 10
-            
-            - name: Show public URLs
-              run: |
-                curl http://localhost:4040/api/tunnels > tunnels.json
-                echo "Public URLs:"
-                cat tunnels.json | jq -r '.tunnels[] | .name + ": " + .public_url'
-            
-            - name: Run tests against Ngrok URLs
-              run: |
-                NGROK_NGINX_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
-                NGROK_FASTAPI_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:8000") | .public_url')
-                NGROK_MLFLOW_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:5000") | .public_url')
-                echo "Testing Nginx at $NGROK_NGINX_URL"
-                curl -s $NGROK_NGINX_URL/api/health | jq .  # Remplacez /health par votre endpoint réel
-                echo "Testing FastAPI at $NGROK_FASTAPI_URL"
-                curl -s $NGROK_FASTAPI_URL/health | jq .  # Remplacez /health par votre endpoint réel
-                echo "Testing MLflow at $NGROK_MLFLOW_URL"
-                curl -s $NGROK_MLFLOW_URL | jq .  # Testez l'interface MLflow
+      - name: Show Nginx container logs
+        run: |
+          echo "Checking Nginx container logs..."
+          docker logs $(docker ps -q --filter name=reverse_proxy)
 
-            - name: Keep Ngrok running for testing
-              run: |
-                echo "Ngrok tunnels are active. Access URLs above for manual testing."
-                sleep 300  # Garde les tunnels ouverts pendant 5 minutes
+      - name: Inspect FastAPI container filesystem
+        run: |
+          echo "Current directory in FastAPI container:"
+          docker exec fastapi_app pwd
+          echo "Contents of /app in FastAPI container:"
+          docker exec fastapi_app ls -lah /app
 
-            - name: Stop Ngrok
-              run: pkill ngrok
+      - name: Inspect MLflow container filesystem
+        run: |
+          echo "Current directory in MLflow container:"
+          docker exec mlflow_ui pwd
+          echo "Contents of /app in MLflow container:"
+          docker exec mlflow_ui ls -lah /app
+
+      - name: Inspect Nginx container filesystem
+        run: |
+          echo "Current directory in Nginx container:"
+          docker exec reverse_proxy pwd
+          echo "Contents of /etc/nginx in Nginx container:"
+          docker exec reverse_proxy ls -lah /etc/nginx
+
+      - name: Download and set up Ngrok
+        run: |
+          wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip
+          unzip ngrok-stable-linux-amd64.zip
+          sudo mv ngrok /usr/local/bin
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+
+      - name: Start Ngrok tunnel for Nginx
+        run: |
+          nohup ngrok http 80 > ngrok_nginx.log &
+          sleep 10
+
+      - name: Show public URL
+        run: |
+          curl http://localhost:4040/api/tunnels > tunnels.json
+          echo "Public URL for Nginx:"
+          NGROK_NGINX_URL=$(cat tunnels.json | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
+          echo $NGROK_NGINX_URL
+
+      - name: Run tests against Ngrok URL
+        run: |
+          NGROK_NGINX_URL=$(cat tunnels.json | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
+          echo "Testing FastAPI root at $NGROK_NGINX_URL/api/"
+          curl -s $NGROK_NGINX_URL/api/ | jq .
+          echo "Testing MLflow at $NGROK_NGINX_URL/mlflow/"
+          curl -s $NGROK_NGINX_URL/mlflow/ | jq .
+
+      - name: Keep Ngrok running for testing
+        run: |
+          echo "Ngrok tunnel is active. Access URL above for manual testing."
+          sleep 300  # Garde le tunnel ouvert pendant 5 minutes
+
+      - name: Stop Ngrok
+        run: pkill ngrok
