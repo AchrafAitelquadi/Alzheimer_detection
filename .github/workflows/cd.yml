@@ -17,11 +17,11 @@ jobs:
     steps:
       # Checkout du code
       - name: Checkout code
-        uses: actions/checkout@v4  # Mise à jour vers une version plus récente
+        uses: actions/checkout@v4
 
       # Télécharger les artifacts du modèle depuis CI
       - name: Download model artifacts from CI
-        uses: dawidd6/action-download-artifact@v3  # Mise à jour vers une version plus récente
+        uses: dawidd6/action-download-artifact@v3
         with:
           workflow: ci.yml
           workflow_conclusion: success
@@ -45,7 +45,7 @@ jobs:
 
       # Configurer Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # Mise à jour vers une version plus récente
+        uses: docker/setup-buildx-action@v3
 
       # Installer Docker Compose
       - name: Install Docker Compose
@@ -58,13 +58,28 @@ jobs:
         run: |
           docker compose build
 
-      # Installer Ngrok
+      # Installer Ngrok avec gestion des formats .zip ou .tgz
       - name: Install Ngrok
         run: |
-          wget https://bin.equinox.io/c/bNyj1mQVH4I/ngrok-v3-stable-linux-amd64.zip
-          unzip ngrok-v3-stable-linux-amd64.zip
+          NGROK_URL="https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz"
+          echo "Tentative de téléchargement de Ngrok depuis : $NGROK_URL"
+          wget $NGROK_URL -O ngrok-v3-stable-linux-amd64.tar || {
+            echo "Erreur : Échec du téléchargement depuis $NGROK_URL"
+            echo "Vérifiez l'URL sur https://ngrok.com/download pour Linux AMD64"
+            exit 1
+          }
+          # Vérifier si le fichier est un .tgz ou .zip et extraire en conséquence
+          if [[ $NGROK_URL == *.tgz ]]; then
+            tar -xzf ngrok-v3-stable-linux-amd64.tar
+          elif [[ $NGROK_URL == *.zip ]]; then
+            unzip ngrok-v3-stable-linux-amd64.tar
+          else
+            echo "Erreur : Format de fichier inconnu pour Ngrok"
+            exit 1
+          fi
           sudo mv ngrok /usr/local/bin
           ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          ngrok version || echo "Erreur : Impossible de vérifier la version de Ngrok"
 
       # Lancer Ngrok pour exposer l'application
       - name: Start Ngrok tunnel for Nginx
@@ -90,7 +105,7 @@ jobs:
       - name: Inject Ngrok URL into React
         run: |
           echo "REACT_APP_API_URL=${{ env.NGROK_URL }}" > ui/.env
-          cat ui/.env  # Vérifier le contenu du fichier .env
+          cat ui/.env
 
       # Reconstruire l'image React avec la nouvelle URL
       - name: Rebuild React container with Ngrok URL
@@ -187,13 +202,12 @@ jobs:
         run: |
           echo "Test de l'application via Ngrok :"
           curl -v ${{ env.NGROK_URL }} || echo "Impossible d'accéder à l'application via Ngrok"
-          curl -v ${{ env.NGROK_URL }}/predict --form file=@./test_image.jpg || echo "Test de l'endpoint predict échoué"
 
       # Garder le tunnel ouvert pour des tests manuels
       - name: Keep Ngrok running for manual testing
         run: |
           echo "Tunnel Ngrok actif. URL publique : ${{ env.NGROK_URL }}"
-          sleep 300  # Garde le tunnel ouvert pendant 5 minutes
+          sleep 300
 
       # Nettoyer après le test
       - name: Stop containers and Ngrok
