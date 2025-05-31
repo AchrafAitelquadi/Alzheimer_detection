@@ -69,6 +69,11 @@ jobs:
           echo "Checking Nginx container logs..."
           docker logs $(docker ps -q --filter name=reverse_proxy) || echo "Failed to get Nginx logs"
 
+      - name: Show React container logs
+        run: |
+          echo "Checking React container logs..."
+          docker logs $(docker ps -q --filter name=react_ui) || echo "Failed to get React logs"
+
       - name: Inspect FastAPI container filesystem
         run: |
           echo "Current directory in FastAPI container:"
@@ -92,6 +97,13 @@ jobs:
           echo "Contents of /etc/nginx in Nginx container:"
           docker exec reverse_proxy ls -lah /etc/nginx || echo "Failed to list /etc/nginx"
 
+      - name: Inspect React container filesystem
+        run: |
+          echo "Current directory in React container:"
+          docker exec react_ui pwd || echo "Failed to inspect React container"
+          echo "Contents of /app in React container:"
+          docker exec react_ui ls -lah /app || echo "Failed to list /app"
+
       - name: Test FastAPI internally
         run: |
           echo "Testing FastAPI internally..."
@@ -111,6 +123,17 @@ jobs:
         run: |
           echo "Testing MLflow from Nginx container..."
           docker exec reverse_proxy curl -s -I http://mlflow:5000/ || echo "MLflow connectivity from Nginx failed"
+
+      - name: Test FastAPI /predict endpoint from Nginx
+        run: |
+          echo "Testing FastAPI /predict endpoint from Nginx container..."
+          # Use a simple OPTIONS request to test CORS and endpoint availability
+          docker exec reverse_proxy curl -s -X OPTIONS http://fastapi:8000/predict || echo "FastAPI /predict endpoint test failed"
+
+      - name: Test React connectivity to FastAPI via Nginx
+        run: |
+          echo "Testing React to FastAPI connectivity via Nginx..."
+          docker exec react_ui curl -s -X OPTIONS http://reverse_proxy/predict || echo "React to FastAPI connectivity failed"
 
       - name: Download and set up Ngrok
         run: |
@@ -132,21 +155,25 @@ jobs:
           echo $NGROK_NGINX_URL
           echo "NGROK_URL=$NGROK_NGINX_URL" >> $GITHUB_ENV
 
-      # Ajouter l'URL Ngrok dans le fichier .env pour React
       - name: Inject Ngrok URL into React
         run: |
           echo "REACT_APP_API_URL=${{ env.NGROK_URL }}" > ui/.env
-          cat ui/.env  # Vérifier le contenu du fichier .env
+          cat ui/.env
 
-      # Reconstruire l'image React avec la nouvelle URL
       - name: Rebuild React container with Ngrok URL
         run: |
           docker compose build react-ui
+          docker compose up -d react-ui  # Redémarrer le service react-ui
+
+      - name: Test application via Ngrok
+        run: |
+          echo "Testing application via Ngrok..."
+          curl -v ${{ env.NGROK_URL }} || echo "Failed to access application via Ngrok"
 
       - name: Keep Ngrok running for testing
         run: |
           echo "Ngrok tunnel is active. Access URL above for manual testing."
-          sleep 300  # Garde le tunnel ouvert pendant 5 minutes
+          sleep 400
 
       - name: Stop Ngrok
         run: pkill ngrok

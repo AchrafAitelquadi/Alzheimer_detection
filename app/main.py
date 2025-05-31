@@ -5,10 +5,10 @@ from schemas import AlzheimerPredictionResponse
 
 app = FastAPI(title="Alzheimer Detection Image API")
 
-# Ajout du middleware CORS
+# Add CORS middleware to allow requests from Ngrok
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Autorise le frontend React
+    allow_origins=["*"],  # Allow all origins for testing (restrict in production)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
