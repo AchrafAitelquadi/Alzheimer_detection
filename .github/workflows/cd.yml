@@ -51,7 +51,7 @@ jobs:
       - name: Build and run containers
         run: |
           docker compose up -d --build
-          sleep 15  # Attendre que les services démarrent
+          sleep 15
 
       - name: Show FastAPI container logs
         run: |
@@ -124,10 +124,14 @@ jobs:
           echo "Testing MLflow from Nginx container..."
           docker exec reverse_proxy curl -s -I http://mlflow:5000/ || echo "MLflow connectivity from Nginx failed"
 
+      - name: Test React connectivity from Nginx
+        run: |
+          echo "Testing React from Nginx container..."
+          docker exec reverse_proxy curl -s http://react-ui:3000/ || echo "React connectivity from Nginx failed"
+
       - name: Test FastAPI /predict endpoint from Nginx
         run: |
           echo "Testing FastAPI /predict endpoint from Nginx container..."
-          # Use a simple OPTIONS request to test CORS and endpoint availability
           docker exec reverse_proxy curl -s -X OPTIONS http://fastapi:8000/predict || echo "FastAPI /predict endpoint test failed"
 
       - name: Test React connectivity to FastAPI via Nginx
@@ -163,7 +167,12 @@ jobs:
       - name: Rebuild React container with Ngrok URL
         run: |
           docker compose build react-ui
-          docker compose up -d react-ui  # Redémarrer le service react-ui
+          docker compose up -d react-ui
+
+      - name: Test React service directly after rebuild
+        run: |
+          echo "Testing React service directly after rebuild..."
+          docker exec react_ui curl -s http://localhost:3000/ || echo "React service test failed after rebuild"
 
       - name: Test application via Ngrok
         run: |
