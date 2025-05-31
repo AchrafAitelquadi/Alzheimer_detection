@@ -6,3 +6,4 @@
 /scripts/__pycache__
 *.db
 Data.rar
+ui/node_modules

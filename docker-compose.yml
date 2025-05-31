@@ -12,6 +12,17 @@ services:
     depends_on:
       - mlflow
   
+  react-ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    image: achrafaitelquadi/mlops-alzheimer-detection-app:react-latest
+    container_name: react_ui
+    expose:
+      - "3000"
+    depends_on:
+      - fastapi
+
   mlflow:
     build:
       context: .
