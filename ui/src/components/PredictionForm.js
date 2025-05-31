@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getPrediction } from '../api/api';
-import { Button, TextField, CircularProgress } from '@mui/material';
+import { Button, Card, CardContent, CardHeader, CircularProgress, Typography } from '@mui/material';
 
 const PredictionForm = ({ onPrediction }) => {
   const [file, setFile] = useState(null);
@@ -18,29 +18,47 @@ const PredictionForm = ({ onPrediction }) => {
     setError(null);
     try {
       const result = await getPrediction(file);
-      onPrediction(result); // Transmet le résultat à la page parent
+      if (!result || !result.prediction) {
+        throw new Error('Réponse invalide du serveur: aucune prédiction reçue.');
+      }
+      onPrediction(result);
     } catch (err) {
-      setError('Erreur lors de la prédiction. Vérifiez votre fichier ou le serveur.');
+      console.error('Error during prediction:', err);
+      setError('Erreur lors de la prédiction: ' + (err.message || 'Vérifiez le serveur.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <TextField
-          type="file"
-          onChange={(e) => setFile(e.target.files[0])}
-          inputProps={{ accept: 'image/*' }} // Limite aux images
-          disabled={loading}
-        />
-        <Button type="submit" variant="contained" color="primary" disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : 'Prédire'}
-        </Button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+    <Card sx={{ maxWidth: 600, margin: '20px auto', padding: 2 }}>
+      <CardHeader title="Uploader une image" />
+      <CardContent>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            style={{ marginBottom: '16px' }}
+            disabled={loading}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            startIcon={loading && <CircularProgress size={20} />}
+          >
+            {loading ? 'Traitement...' : 'Prédire'}
+          </Button>
+        </form>
+        {error && (
+          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

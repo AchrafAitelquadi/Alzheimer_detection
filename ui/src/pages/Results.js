@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Button, Card, CardContent, Typography, Container } from '@mui/material';
 
 const Results = () => {
   const { state } = useLocation();
@@ -8,21 +8,40 @@ const Results = () => {
   const prediction = state?.prediction || {};
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Résultats de la Prédiction</h1>
-      {prediction ? (
-        <div>
-          <p><strong>Prédiction :</strong> {prediction.prediction || 'Non disponible'}</p>
-          <p><strong>Message :</strong> {prediction.message || 'Non disponible'}</p>
-          <p><strong>Fichier :</strong> {prediction.filename || 'Non disponible'}</p>
-        </div>
-      ) : (
-        <p>Aucune prédiction disponible.</p>
-      )}
-      <Button variant="outlined" onClick={() => navigate('/')}>
-        Retour à l'accueil
-      </Button>
-    </div>
+    <Container>
+      <Typography variant="h1" gutterBottom sx={{ mt: 4, mb: 2 }}>
+        Résultats de la Prédiction
+      </Typography>
+      <Card sx={{ maxWidth: 600, margin: '20px auto', padding: 2 }}>
+        <CardContent>
+          {prediction && prediction.prediction ? (
+            <>
+              <Typography variant="h6" gutterBottom>
+                <strong>Prédiction :</strong> {prediction.prediction}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Message :</strong> {prediction.message || 'Non disponible'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Fichier :</strong> {prediction.filename || 'Non disponible'}
+              </Typography>
+            </>
+          ) : (
+            <Typography color="text.secondary">
+              Aucune prédiction disponible. Veuillez réessayer.
+            </Typography>
+          )}
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate('/')}
+            sx={{ mt: 2 }}
+          >
+            Retour à l'accueil
+          </Button>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

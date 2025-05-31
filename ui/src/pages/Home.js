@@ -1,20 +1,26 @@
 import React from 'react';
 import PredictionForm from '../components/PredictionForm';
 import { useNavigate } from 'react-router-dom';
+import { Typography, Container } from '@mui/material';
 
 const Home = () => {
   const navigate = useNavigate();
 
   const handlePrediction = (result) => {
-    navigate('/results', { state: { prediction: result } }); // Redirige vers la page de résultats
+    console.log('Result before navigation:', result);
+    navigate('/results', { state: { prediction: result } });
   };
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Détection de l'Alzheimer</h1>
-      <p>Chargez une image pour obtenir une prédiction.</p>
+    <Container>
+      <Typography variant="h1" gutterBottom sx={{ mt: 4, mb: 2 }}>
+        Détection de l'Alzheimer
+      </Typography>
+      <Typography variant="body1" paragraph>
+        Bienvenue ! Chargez une image médicale pour obtenir une prédiction assistée par intelligence artificielle concernant la détection de l'Alzheimer.
+      </Typography>
       <PredictionForm onPrediction={handlePrediction} />
-    </div>
+    </Container>
   );
 };
 
