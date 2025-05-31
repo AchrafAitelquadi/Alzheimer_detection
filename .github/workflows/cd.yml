@@ -15,13 +15,11 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      # Checkout du code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # Télécharger les artifacts du modèle depuis CI
       - name: Download model artifacts from CI
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v2
         with:
           workflow: ci.yml
           workflow_conclusion: success
@@ -31,9 +29,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           check_artifacts: true
 
-      # Télécharger les artifacts MLflow depuis CI
-      - name: Download MLflow artifacts from CI
-        uses: dawidd6/action-download-artifact@v3
+      - name: Download MLFlow artifacts from CI
+        uses: dawidd6/action-download-artifact@v2
         with:
           workflow: ci.yml
           workflow_conclusion: success
@@ -43,175 +40,113 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           check_artifacts: true
 
-      # Configurer Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2
 
-      # Installer Docker Compose
       - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      # Construire les conteneurs (sans démarrer encore)
-      - name: Build containers
+      - name: Build and run containers
         run: |
-          docker compose build
+          docker compose up -d --build
+          sleep 15  # Attendre que les services démarrent
 
-      # Installer Ngrok avec gestion des formats .zip ou .tgz
-      - name: Install Ngrok
+      - name: Show FastAPI container logs
         run: |
-          NGROK_URL="https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz"
-          echo "Tentative de téléchargement de Ngrok depuis : $NGROK_URL"
-          wget $NGROK_URL -O ngrok-v3-stable-linux-amd64.tar || {
-            echo "Erreur : Échec du téléchargement depuis $NGROK_URL"
-            echo "Vérifiez l'URL sur https://ngrok.com/download pour Linux AMD64"
-            exit 1
-          }
-          # Vérifier si le fichier est un .tgz ou .zip et extraire en conséquence
-          if [[ $NGROK_URL == *.tgz ]]; then
-            tar -xzf ngrok-v3-stable-linux-amd64.tar
-          elif [[ $NGROK_URL == *.zip ]]; then
-            unzip ngrok-v3-stable-linux-amd64.tar
-          else
-            echo "Erreur : Format de fichier inconnu pour Ngrok"
-            exit 1
-          fi
+          echo "Checking FastAPI container logs..."
+          docker ps
+          docker logs $(docker ps -q --filter name=fastapi_app) || echo "Failed to get FastAPI logs"
+
+      - name: Show MLflow container logs
+        run: |
+          echo "Checking MLflow container logs..."
+          docker logs $(docker ps -q --filter name=mlflow_ui) || echo "Failed to get MLflow logs"
+
+      - name: Show Nginx container logs
+        run: |
+          echo "Checking Nginx container logs..."
+          docker logs $(docker ps -q --filter name=reverse_proxy) || echo "Failed to get Nginx logs"
+
+      - name: Inspect FastAPI container filesystem
+        run: |
+          echo "Current directory in FastAPI container:"
+          docker exec fastapi_app pwd || echo "Failed to inspect FastAPI container"
+          echo "Contents of /app in FastAPI container:"
+          docker exec fastapi_app ls -lah /app || echo "Failed to list /app"
+          echo "Contents of /app/models in FastAPI container:"
+          docker exec fastapi_app ls -lah /app/models || echo "No models directory"
+
+      - name: Inspect MLflow container filesystem
+        run: |
+          echo "Current directory in MLflow container:"
+          docker exec mlflow_ui pwd || echo "Failed to inspect MLflow container"
+          echo "Contents of /mlruns in MLflow container:"
+          docker exec mlflow_ui ls -lah /mlruns || echo "No mlruns directory"
+
+      - name: Inspect Nginx container filesystem
+        run: |
+          echo "Current directory in Nginx container:"
+          docker exec reverse_proxy pwd || echo "Failed to inspect Nginx container"
+          echo "Contents of /etc/nginx in Nginx container:"
+          docker exec reverse_proxy ls -lah /etc/nginx || echo "Failed to list /etc/nginx"
+
+      - name: Test FastAPI internally
+        run: |
+          echo "Testing FastAPI internally..."
+          docker exec fastapi_app curl -s http://localhost:8000/ || echo "FastAPI internal test failed"
+
+      - name: Test MLflow internally
+        run: |
+          echo "Testing MLflow internally..."
+          docker exec mlflow_ui curl -s -I http://localhost:5000/ || echo "MLflow internal test failed"
+
+      - name: Test FastAPI connectivity from Nginx
+        run: |
+          echo "Testing FastAPI from Nginx container..."
+          docker exec reverse_proxy curl -s http://fastapi:8000/ || echo "FastAPI connectivity from Nginx failed"
+
+      - name: Test MLflow connectivity from Nginx
+        run: |
+          echo "Testing MLflow from Nginx container..."
+          docker exec reverse_proxy curl -s -I http://mlflow:5000/ || echo "MLflow connectivity from Nginx failed"
+
+      - name: Download and set up Ngrok
+        run: |
+          wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip
+          unzip ngrok-stable-linux-amd64.zip
           sudo mv ngrok /usr/local/bin
-          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-          ngrok version || echo "Erreur : Impossible de vérifier la version de Ngrok"
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
 
-      # Lancer Ngrok pour exposer l'application
       - name: Start Ngrok tunnel for Nginx
         run: |
-          nohup ngrok http 80 --log=stdout > ngrok.log &
+          nohup ngrok http 80 > ngrok_nginx.log &
           sleep 10
-          NGROK_URL=$(cat ngrok.log | grep -o "https://[0-9a-z]*\.ngrok\.io")
-          if [ -z "$NGROK_URL" ]; then
-            echo "Erreur : Impossible de récupérer l'URL Ngrok"
-            cat ngrok.log
-            exit 1
-          fi
-          echo "Ngrok URL: $NGROK_URL"
-          echo "NGROK_URL=$NGROK_URL" >> $GITHUB_ENV
 
-      # Dépannage : Vérifier l'état du tunnel Ngrok
-      - name: Debug Ngrok tunnel status
+      - name: Show public URL
         run: |
-          echo "Détails du tunnel Ngrok :"
-          curl http://localhost:4040/api/tunnels || echo "Impossible de contacter l'API Ngrok"
+          curl http://localhost:4040/api/tunnels > tunnels.json
+          echo "Public URL for Nginx:"
+          NGROK_NGINX_URL=$(cat tunnels.json | jq -r '.tunnels[] | select(.proto == "https" and .config.addr == "http://localhost:80") | .public_url')
+          echo $NGROK_NGINX_URL
+          echo "NGROK_URL=$NGROK_NGINX_URL" >> $GITHUB_ENV
 
-      # Créer un fichier .env pour React avec l'URL Ngrok
+      # Ajouter l'URL Ngrok dans le fichier .env pour React
       - name: Inject Ngrok URL into React
         run: |
           echo "REACT_APP_API_URL=${{ env.NGROK_URL }}" > ui/.env
-          cat ui/.env
+          cat ui/.env  # Vérifier le contenu du fichier .env
 
       # Reconstruire l'image React avec la nouvelle URL
       - name: Rebuild React container with Ngrok URL
         run: |
           docker compose build react-ui
 
-      # Démarrer les conteneurs
-      - name: Start containers
+      - name: Keep Ngrok running for testing
         run: |
-          docker compose up -d
-          sleep 15
+          echo "Ngrok tunnel is active. Access URL above for manual testing."
+          sleep 300  # Garde le tunnel ouvert pendant 5 minutes
 
-      # Afficher les conteneurs en cours d'exécution
-      - name: List running containers
-        run: |
-          echo "Conteneurs en cours d'exécution :"
-          docker ps
-
-      # Vérifier les logs des conteneurs
-      - name: Show FastAPI container logs
-        run: |
-          echo "Logs FastAPI :"
-          docker logs fastapi_app || echo "Impossible d'obtenir les logs FastAPI"
-
-      - name: Show MLflow container logs
-        run: |
-          echo "Logs MLflow :"
-          docker logs mlflow_ui || echo "Impossible d'obtenir les logs MLflow"
-
-      - name: Show Nginx container logs
-        run: |
-          echo "Logs Nginx :"
-          docker logs reverse_proxy || echo "Impossible d'obtenir les logs Nginx"
-
-      - name: Show React container logs
-        run: |
-          echo "Logs React :"
-          docker logs react_ui || echo "Impossible d'obtenir les logs React"
-
-      # Inspecter les systèmes de fichiers des conteneurs
-      - name: Inspect FastAPI container filesystem
-        run: |
-          echo "Répertoire courant dans le conteneur FastAPI :"
-          docker exec fastapi_app pwd || echo "Impossible d'inspecter le conteneur FastAPI"
-          echo "Contenu de /app dans FastAPI :"
-          docker exec fastapi_app ls -lah /app || echo "Impossible de lister /app"
-          echo "Contenu de /app/models dans FastAPI :"
-          docker exec fastapi_app ls -lah /app/models || echo "Aucun répertoire models"
-
-      - name: Inspect MLflow container filesystem
-        run: |
-          echo "Répertoire courant dans le conteneur MLflow :"
-          docker exec mlflow_ui pwd || echo "Impossible d'inspecter le conteneur MLflow"
-          echo "Contenu de /mlruns dans MLflow :"
-          docker exec mlflow_ui ls -lah /mlruns || echo "Aucun répertoire mlruns"
-
-      - name: Inspect Nginx container filesystem
-        run: |
-          echo "Répertoire courant dans le conteneur Nginx :"
-          docker exec reverse_proxy pwd || echo "Impossible d'inspecter le conteneur Nginx"
-          echo "Contenu de /etc/nginx dans Nginx :"
-          docker exec reverse_proxy ls -lah /etc/nginx || echo "Impossible de lister /etc/nginx"
-
-      - name: Inspect React container filesystem
-        run: |
-          echo "Répertoire courant dans le conteneur React :"
-          docker exec react_ui pwd || echo "Impossible d'inspecter le conteneur React"
-          echo "Contenu de /app dans React :"
-          docker exec react_ui ls -lah /app || echo "Impossible de lister /app"
-
-      # Tests de connectivité internes
-      - name: Test FastAPI internally
-        run: |
-          echo "Test interne FastAPI :"
-          docker exec fastapi_app curl -s http://localhost:8000/ || echo "Test interne FastAPI échoué"
-
-      - name: Test MLflow internally
-        run: |
-          echo "Test interne MLflow :"
-          docker exec mlflow_ui curl -s -I http://localhost:5000/ || echo "Test interne MLflow échoué"
-
-      - name: Test FastAPI connectivity from Nginx
-        run: |
-          echo "Test de connectivité FastAPI depuis Nginx :"
-          docker exec reverse_proxy curl -s http://fastapi:8000/ || echo "Connectivité FastAPI depuis Nginx échouée"
-
-      - name: Test MLflow connectivity from Nginx
-        run: |
-          echo "Test de connectivité MLflow depuis Nginx :"
-          docker exec reverse_proxy curl -s -I http://mlflow:5000/ || echo "Connectivité MLflow depuis Nginx échouée"
-
-      # Test externe via l'URL Ngrok
-      - name: Test application via Ngrok
-        run: |
-          echo "Test de l'application via Ngrok :"
-          curl -v ${{ env.NGROK_URL }} || echo "Impossible d'accéder à l'application via Ngrok"
-
-      # Garder le tunnel ouvert pour des tests manuels
-      - name: Keep Ngrok running for manual testing
-        run: |
-          echo "Tunnel Ngrok actif. URL publique : ${{ env.NGROK_URL }}"
-          sleep 300
-
-      # Nettoyer après le test
-      - name: Stop containers and Ngrok
-        if: always()
-        run: |
-          docker compose down
-          pkill ngrok || echo "Aucun processus Ngrok à arrêter"
+      - name: Stop Ngrok
+        run: pkill ngrok
