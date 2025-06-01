@@ -1,22 +1,20 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from predict import make_predictions_alzheimer
 from schemas import AlzheimerPredictionResponse
-import mlflow
-from mlflow.tracking import MlflowClient
+import os
 
 app = FastAPI(title="Alzheimer Detection Image API")
 
+# Add CORS middleware to allow requests from Ngrok
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allow all origins for testing (restrict in production)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-mlflow.set_tracking_uri("http://mlflow_ui:5000")
-client = MlflowClient()
 
 @app.get("/")
 def root():
@@ -30,35 +28,64 @@ async def predict(file: UploadFile = File(...)):
 
     try:
         logger.info(f"Processing file: {file.filename}")
-        predicted_class, confidence = make_predictions_alzheimer(file)
-        logger.info(f"Prediction result: {predicted_class}, Confidence: {confidence}")
-        if predicted_class is None:
+        prediction = make_predictions_alzheimer(file)
+        logger.info(f"Prediction result: {prediction}")
+        if prediction is None:
             raise ValueError("Prediction returned None")
         return AlzheimerPredictionResponse(
             filename=file.filename,
-            prediction=predicted_class,
-            message=f"Prediction successful",
-            confidence=confidence
+            prediction=prediction,
+            message="Prediction successful"
         )
     except Exception as e:
         logger.error(f"Error in prediction: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/logs")
-async def get_logs(limit: int = 10):
+@app.get("/logs", response_class=HTMLResponse)
+async def get_logs():
     try:
-        runs = client.search_runs(experiment_ids=["0"], max_results=limit, order_by=["start_time DESC"])
-        logs = []
-        for run in runs:
-            log = {
-                "run_id": run.info.run_id,
-                "filename": run.data.params.get("image_filename", "N/A"),
-                "predicted_class": int(run.data.metrics.get("predicted_class", -1)),
-                "confidence": run.data.metrics.get("prediction_confidence", 0.0),
-                "latency": run.data.metrics.get("prediction_latency", 0.0),
-                "timestamp": run.info.start_time.isoformat()
-            }
-            logs.append(log)
-        return {"logs": logs}
+        with open("logs.txt", "r") as log_file:
+            logs = log_file.read()
+        # Return plain HTML with black background and white text
+        html_content = f"""
+        <html>
+            <head>
+                <title>Logs</title>
+                <style>
+                    body {{ 
+                        background-color: black; 
+                        color: white; 
+                        font-family: monospace; 
+                        white-space: pre-wrap;
+                        margin: 20px;
+                    }}
+                </style>
+            </head>
+            <body>
+                {logs}
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        html_content = """
+        <html>
+            <head>
+                <title>Logs</title>
+                <style>
+                    body {{ 
+                        background-color: black; 
+                        color: white; 
+                        font-family: monospace; 
+                        margin: 20px;
+                    }}
+                </style>
+            </head>
+            <body>
+                No logs found
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")

@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AppBar, Toolbar, Typography, Container, Card, CardContent, CardHeader, Button, CircularProgress, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Card, CardContent, CardHeader, Button, CircularProgress, Box } from '@mui/material';
 import axios from 'axios';
 
 // Define the API URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:80';
-// Define the MLflow UI URL (adjust based on deployment, e.g., Ngrok URL)
-const MLFLOW_URL = process.env.REACT_APP_MLFLOW_URL || 'http://localhost:5000';
 
 // Function to make prediction API call
 const getPrediction = async (file) => {
@@ -26,33 +24,22 @@ const getPrediction = async (file) => {
   }
 };
 
-// Function to fetch logs
-const getLogs = async (limit = 10) => {
-  try {
-    const response = await axios.get(`${API_URL}/logs?limit=${limit}`);
-    return response.data.logs;
-  } catch (error) {
-    console.error('Error fetching logs:', error);
-    throw error;
-  }
-};
-
-// Define the MUI theme with dark mode and neon blue
+// Define the MUI theme with dark mode and neon blue (without self-reference)
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#00D4FF',
+      main: '#00D4FF', // Neon blue
     },
     secondary: {
-      main: '#00B4D8',
+      main: '#00B4D8', // Slightly darker neon blue
     },
     background: {
-      default: '#1A1F2E',
-      paper: '#2A2F44',
+      default: '#1A1F2E', // Dark background
+      paper: '#2A2F44', // Slightly lighter for cards
     },
     text: {
-      primary: '#E0E0E0',
+      primary: '#E0E0E0', // Light gray for readability
     },
   },
   typography: {
@@ -61,7 +48,7 @@ const theme = createTheme({
       fontSize: '2.75rem',
       fontWeight: 700,
       color: '#00D4FF',
-      textShadow: '0 0 10px rgba(0, 212, 255, 0.7), 0 0 5px rgba(0, 212, 255, 0.5)',
+      textShadow: '0 0 10px rgba(0, 212, 255, 0.7), 0 0 5px rgba(0, 212, 255, 0.5)', // Neon text glow
       textAlign: 'center',
     },
     h6: {
@@ -93,7 +80,7 @@ const theme = createTheme({
   },
 });
 
-// Styled components for custom styling
+// Styled components for custom styling (defined after theme)
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 600,
   width: '100%',
@@ -101,7 +88,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: 12,
   backgroundColor: '#2A2F44',
-  boxShadow: '0 0 15px rgba(0, 212, 255, 0.3), 0 0 5px rgba(0, 212, 255, 0.5)',
+  boxShadow: '0 0 15px rgba(0, 212, 255, 0.3), 0 0 5px rgba(0, 212, 255, 0.5)', // Neon glow effect
   transition: 'transform 0.2s',
   '&:hover': {
     transform: 'translateY(-2px)',
@@ -161,8 +148,6 @@ const DropZone = styled('div')(({ theme }) => ({
 
 // Main App Component
 const App = () => {
-  const navigate = useNavigate();
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -184,8 +169,6 @@ const App = () => {
               >
                 Alzheimer Detection System
               </Typography>
-              <StyledButton onClick={() => navigate('/')}>Home</StyledButton>
-              <StyledButton onClick={() => navigate('/logs')}>View Logs</StyledButton>
             </Toolbar>
           </Container>
         </AppBar>
@@ -195,7 +178,6 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/results" element={<Results />} />
-            <Route path="/logs" element={<Logs />} />
           </Routes>
         </Container>
       </Router>
@@ -326,13 +308,10 @@ const Results = () => {
       </Typography>
       <StyledCard>
         <CardContent>
-          {prediction && prediction.prediction !== undefined ? (
+          {prediction && prediction.prediction ? (
             <>
               <Typography variant="h6" gutterBottom sx={{ mb: 2, color: '#E0E0E0' }}>
                 <strong>Prediction:</strong> {prediction.prediction}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                <strong>Confidence:</strong> {(prediction.confidence || 0).toFixed(2)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 <strong>Message:</strong> {prediction.message || 'Not available'}
@@ -356,98 +335,6 @@ const Results = () => {
           </StyledButton>
         </CardContent>
       </StyledCard>
-    </Container>
-  );
-};
-
-// Logs Component
-const Logs = () => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [limit, setLimit] = useState(10);
-
-  useEffect(() => {
-    const fetchLogs = async () => {
-      setLoading(true);
-      try {
-        const fetchedLogs = await getLogs(limit);
-        setLogs(fetchedLogs);
-      } catch (err) {
-        setError('Error fetching logs: ' + (err.message || 'Check the server or MLflow.'));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLogs();
-  }, [limit]);
-
-  const handleLimitChange = (e) => {
-    setLimit(parseInt(e.target.value) || 10);
-  };
-
-  return (
-    <Container maxWidth="lg">
-      <Typography variant="h1" gutterBottom sx={{ mt: { xs: 4, sm: 6 }, mb: 4 }}>
-        Prediction Logs
-      </Typography>
-      <Box sx={{ mb: 2 }}>
-        <TextField
-          label="Number of Logs"
-          variant="outlined"
-          type="number"
-          value={limit}
-          onChange={handleLimitChange}
-          sx={{ backgroundColor: '#1A1F2E', input: { color: '#E0E0E0' } }}
-          InputProps={{ inputProps: { min: 1, max: 100 } }}
-        />
-      </Box>
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Typography color="error" variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
-          {error}
-        </Typography>
-      ) : logs.length === 0 ? (
-        <Typography variant="body1" sx={{ textAlign: 'center', mt: 4, color: '#B0B0B0' }}>
-          No logs available.
-        </Typography>
-      ) : (
-        <TableContainer component={Paper} sx={{ backgroundColor: '#2A2F44' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Run ID</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Filename</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Predicted Class</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Confidence</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Latency (s)</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>Timestamp</TableCell>
-                <TableCell sx={{ color: '#00D4FF', fontWeight: 600 }}>View in MLflow</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {logs.map((log) => (
-                <TableRow key={log.run_id}>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.run_id.slice(0, 8)}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.filename}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.predicted_class}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.confidence.toFixed(2)}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.latency.toFixed(3)}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>{log.timestamp}</TableCell>
-                  <TableCell sx={{ color: '#E0E0E0' }}>
-                    <a href={`${MLFLOW_URL}/#/experiments/0/runs/${log.run_id}`} target="_blank" rel="noopener noreferrer">
-                      <StyledButton variant="contained" size="small">View</StyledButton>
-                    </a>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
     </Container>
   );
 };
